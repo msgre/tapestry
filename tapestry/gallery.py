@@ -5,10 +5,10 @@ import pygame.locals
 import re
 import time
 
-from config import GalleryConfig, TitlesConfig
-from detective import get_entries, check_file
-from states import get_state, STATE_ACTION, STATE_BACK, STATE_MISSING_SOURCE, STATE_NEXT, STATE_PREV, STATE_QUIT
-from view import View
+from .config import GalleryConfig, TitlesConfig
+from .detective import get_entries, check_file
+from .states import get_state, STATE_ACTION, STATE_BACK, STATE_MISSING_SOURCE, STATE_NEXT, STATE_PREV, STATE_QUIT
+from .view import View
 
 
 class Gallery(View):

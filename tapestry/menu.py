@@ -1,10 +1,10 @@
 import os
-from states import get_state, STATE_ACTION, STATE_QUIT, STATE_MISSING_SOURCE, STATE_NEXT, STATE_PREV
+from .states import get_state, STATE_ACTION, STATE_QUIT, STATE_MISSING_SOURCE, STATE_NEXT, STATE_PREV
 
 import pygame
 import pygame.locals
 import time
-from detective import get_entries, check_dir, source_exist
+from .detective import get_entries, check_dir, source_exist
 
 
 class Menu:

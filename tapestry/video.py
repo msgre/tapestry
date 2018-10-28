@@ -4,9 +4,9 @@ import pygame
 import pygame.locals
 import subprocess
 
-from detective import get_entries, check_file
-from states import STATE_BACK
-from view import View
+from .detective import get_entries, check_file
+from .states import STATE_BACK
+from .view import View
 
 
 class Video(View):
