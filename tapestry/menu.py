@@ -10,6 +10,7 @@ from .detective import get_entries, check_dir, source_exist
 class Menu:
     def __init__(self, dirpath, display, config, position=0, fps=50, sleep=3):
         self.dirpath = os.path.abspath(dirpath)
+        self.display = display
         self.screen = display.screen
         self.font = display.font
         self.size = display.size

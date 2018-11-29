@@ -6,36 +6,27 @@ def source_exist(dirpath):
     return os.path.exists(dirpath) and os.path.isdir(dirpath)
 
 
-def get_entries(dirpath, condition=None, sleep=3):
-    while True:
-        if not os.path.exists(dirpath):
-            print("Provided dirpath {} doesn't exist.".format(dirpath))
-            print('Waiting {} seconds...'.format(sleep))
-            time.sleep(sleep)
-        else:
-            break
+def get_entries(dirpath, condition=None):
+    if not os.path.exists(dirpath):
+        print("Provided dirpath {} doesn't exist.".format(dirpath), flush=True)
+        print('Waiting {} seconds...'.format(sleep), flush=True)
+        return None
 
-    while True:
-        if not os.path.isdir(dirpath):
-            print("Provided dirpath {} is not directory.".format(dirpath))
-            print('Waiting {} seconds...'.format(sleep))
-            time.sleep(sleep)
-        else:
-            break
+    if not os.path.isdir(dirpath):
+        print("Provided dirpath {} is not directory.".format(dirpath), flush=True)
+        print('Waiting {} seconds...'.format(sleep), flush=True)
+        return None
 
     if not condition:
         condition = lambda a: True
 
-    while True:
-        entries = os.listdir(dirpath)
-        entries = sorted([f for f in entries if condition(dirpath, f)])
-        entries_len = len(entries)
-        print('Found {} entries.'.format(entries_len))
-        if entries_len == 0:
-            print('Waiting {} seconds...'.format(sleep))
-            time.sleep(sleep)
-        else:
-            break
+    entries = os.listdir(dirpath)
+    entries = sorted([f for f in entries if condition(dirpath, f)])
+    entries_len = len(entries)
+    print('Found {} entries.'.format(entries_len), flush=True)
+    if entries_len == 0:
+        print('Waiting {} seconds...'.format(sleep), flush=True)
+        return None
 
     return entries
 

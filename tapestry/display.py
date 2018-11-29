@@ -26,6 +26,7 @@ class Display:
             os.putenv('SDL_VIDEODRIVER', 'fbcon')
             pygame.init()
         self.size = [pygame.display.Info().current_w, pygame.display.Info().current_h]
+        print('Setting resolution to {}x{} pixels'.format(*self.size))
         pygame.mouse.set_visible(False)
         self.screen = pygame.display.set_mode(self.size, pygame.FULLSCREEN)
         self.font = self.load_font(self.config['fontsize'])
@@ -38,6 +39,16 @@ class Display:
         """
         self.screen.fill(self.config['screen_background'])
         msg = 'Čekám na připojení USB klíčenky s daty pro projekci.'
+        text = self.font.render(msg, True, self.config['screen_color'])
+        text_size = text.get_rect().size
+        text_x = self.size[0] / 2 - text_size[0] / 2
+        text_y = self.size[1] / 2 - text_size[1] / 2
+        self.screen.blit(text, (text_x, text_y))
+        pygame.display.update()
+
+    def render_no_entries(self):
+        self.screen.fill(self.config['screen_background'])
+        msg = 'Na zadané cestě jsem nic nenašel...'
         text = self.font.render(msg, True, self.config['screen_color'])
         text_size = text.get_rect().size
         text_x = self.size[0] / 2 - text_size[0] / 2

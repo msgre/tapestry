@@ -19,16 +19,17 @@ class Gallery(View):
         status, config = gc.process()
 
         self.autoplay = config['autoplay']
-        self.y_spacing = config['margin'] * 2 + config['fontsize']
+        self.x_spacing = config['margin'] * 2
+        self.y_spacing = config['margin'] * 3 + config['fontsize']
         self.font = self.display.load_font(config['fontsize'])
 
         if not status:
-            print('No configuration file found.')
+            print('No configuration file found.', flush=True)
         
         config_msg = []
         for k, v in config.items():
             config_msg.append('{k}={v}'.format(k=k, v=v))
-        print("Configuration: {}".format(', '.join(config_msg)))
+        print("Configuration: {}".format(', '.join(config_msg)), flush=True)
 
         return config
 
@@ -37,7 +38,7 @@ class Gallery(View):
         status, config = tc.process()
 
         if not status:
-            print('No titles file found.')
+            print('No titles file found.', flush=True)
 
         return config
 
@@ -46,6 +47,7 @@ class Gallery(View):
         Calculate optimal image size for given size.
         """
         display_width, display_height = self.display.size
+        display_width -= self.x_spacing
         display_height -= self.y_spacing
 
         if display_width < img_width:
@@ -91,7 +93,7 @@ class Gallery(View):
         display_width, display_height = self.display.size
 
         # open and resize source image
-        print(imgpath)
+        print(imgpath, flush=True)
         img = pygame.image.load(imgpath)
         img_size = img.get_rect().size
         optimal_size = self.get_optimal_size(img_size[0], img_size[1])
@@ -100,8 +102,7 @@ class Gallery(View):
         # put image on screen (centered, bg color)
         self.display.screen.fill(self.config['screen_background'])
         x = math.ceil((display_width - optimal_size[0]) / 2)
-        #y = math.ceil((display_height - optimal_size[1]) / 2)
-        y = 0
+        y = math.ceil(self.config['margin'] + (display_height - self.y_spacing - optimal_size[1]) / 2)
         self.display.screen.blit(img, (x, y))
 
         # pause symbol on screen
@@ -110,14 +111,11 @@ class Gallery(View):
             self.display.screen.blit(pause['img'], (pause['x'], pause['y']))
 
         # optional title
-        print(title)
         if title:
             text = self.font.render(title, True, self.config['screen_color'])
             text_size = text.get_rect().size
             text_x = display_width / 2 - text_size[0] / 2
-            text_y = display_height - self.y_spacing + round(self.config['fontsize'] * 0.1)
-            print(text_x)
-            print(text_y)
+            text_y = display_height - self.y_spacing + self.config['margin'] + round(self.config['fontsize'] * 0.1)
             self.display.screen.blit(text, (text_x, text_y))
             # self.display.screen.blit(text, (1000, 0))
 
@@ -133,7 +131,6 @@ class Gallery(View):
         # load configuration files
         self.config = self.load_config()
         titles = self.load_titles()
-        print(titles)
 
         # initialize main loop
         clock = pygame.time.Clock()
