@@ -1,4 +1,4 @@
-Raspberry Pi based images and video presenter, originaly build for exhibition on MGM (gobelin.cz).
+**Raspberry Pi based images and video presenter, originaly build for exhibition on MGM ([gobelin.cz](http://www.gobelin.cz/en)).**
 
 Main idea of this project is to create HW device which will be able to present images and videos from
 USB disk on arbitrary HDMI monitor/TV controlled by physical buttons instead of overcomplicated
