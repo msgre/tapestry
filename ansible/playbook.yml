@@ -1,0 +1,178 @@
+---
+- hosts: all
+  gather_facts: no
+  remote_user: pi
+  vars:
+    usb_path: /media/usb/data/
+    gpio_rw_pin: 27
+    gpio_halt_pin: 4
+  tasks:
+    # check that user specify new password for pi user
+    - fail: msg="You need to run ansible-playbook with --extra-vars "pipassw=<your-password>" parameter"
+      when: pipassw is not defined
+
+    # hostname
+    - name: Change hostname 1/2
+      replace:
+        path: /etc/hostname
+        regexp: '^raspberrypi$'
+        replace: 'tapestry'
+      become: yes
+
+    - name: Change hostname 2/2
+      replace:
+        path: /etc/hosts
+        regexp: '^127.0.0.1\s+raspberrypi$'
+        replace: '127.0.0.1 tapestry'
+      become: yes
+
+    # repository
+    - name: Update repositories cache
+      apt:
+        update_cache: yes
+      become: yes
+
+    # mandatory packages
+    - name: Install USBmount
+      apt:
+        name: usbmount
+      become: yes
+
+    - name: Some USB automount magic
+      replace:
+        path: /lib/systemd/system/systemd-udevd.service
+        regexp: '^MountFlags=slave$'
+        replace: 'MountFlags=shared'
+        # https://www.raspberrypi.org/forums/viewtopic.php?p=1271455#p1271455
+      become: yes
+
+    - name: Install Pygame
+      apt:
+        name: python3-pygame
+      become: yes
+
+    - name: Install Mplayer
+      apt:
+        name: mplayer
+      become: yes
+
+    - name: Install Vim
+      apt:
+        name: vim
+      become: yes
+
+    # GPIO keyboard
+    # https://github.com/adafruit/Adafruit-Retrogame
+    - name: Download Adafruit retrogame keyboard utility
+      get_url:
+        url: https://raw.githubusercontent.com/adafruit/Adafruit-Retrogame/master/retrogame
+        dest: /usr/local/bin
+        mode: 0755
+      become: yes
+
+    - name: Udev rules
+      lineinfile:
+        path: /etc/udev/rules.d/10-retrogame.rules
+        line: 'SUBSYSTEM=="input", ATTRS{name}=="retrogame", ENV{ID_INPUT_KEYBOARD}="1"'
+        create: yes
+      become: yes
+
+    - name: Retrogame start upon boot
+      lineinfile:
+        path: /etc/rc.local
+        insertbefore: '^exit 0$'
+        line: '/usr/local/bin/retrogame &'
+      become: yes
+
+    - name: Configuration file for RetroGame
+      copy:
+        src: /app/retrogame.cfg
+        dest: /boot/retrogame.cfg
+        owner: root
+        group: root
+        mode: 0644
+      become: yes
+
+    # tapestry presenter
+    - name: Download tapestry presenter
+      unarchive:
+        src: https://github.com/msgre/tapestry/archive/master.zip
+        dest: /home/pi/
+        remote_src: yes
+        owner: pi
+        group: pi
+      become: yes
+
+    - name: Setup tapestry service
+      template:
+        src: tapestry.service.j2
+        dest: /lib/systemd/system/tapestry.service
+        owner: root
+        group: root
+      become: yes
+
+    - name: Start tapestry service
+      systemd:
+        name: tapestry
+        enabled: yes
+      become: yes
+
+    # hdmi screen finetunning
+    - name: Use whole Sony Bravia WE66 screen without black borders
+      lineinfile:
+        path: /boot/config.txt
+        regexp: '^disable_overscan=1$'
+        line: 'disable_overscan=1'
+      become: yes
+
+    - name: Force HDMI screen resolution (width)
+      lineinfile:
+        path: /boot/config.txt
+        regexp: '^framebuffer_width=1920$'
+        line: 'framebuffer_width=1920'
+      become: yes
+
+    - name: Force HDMI screen resolution (height)
+      lineinfile:
+        path: /boot/config.txt
+        regexp: '^framebuffer_height=1080$'
+        line: 'framebuffer_height=1080'
+      become: yes
+
+    - name: Force HDMI screen resolution (mode)
+      lineinfile:
+        path: /boot/config.txt
+        regexp: '^hdmi_mode=16$'
+        line: 'hdmi_mode=16'
+      become: yes
+
+    # read only filesystem
+    # https://learn.adafruit.com/read-only-raspberry-pi/ 
+    - name: Deploy read-only script
+      template:
+        src: read-only-fs.sh.j2
+        dest: /home/pi/read-only-fs.sh
+        owner: root
+        group: root
+        mode: 0755
+      become: yes
+
+    - name: Run read only script
+      command: /home/pi/read-only-fs.sh
+      become: yes
+
+    - name: Stop slow DHCP network service on startup
+      systemd:
+        name: dhcpcd
+        enabled: no
+        state: stopped
+      become: yes
+
+    - name: Change pi user password
+      user: name=pi password="{{ pipassw | password_hash('sha512', 'hash') }}" update_password=always
+      become: yes
+
+    - name: Reboot
+      reboot:
+        reboot_timeout: 60
+      become: yes

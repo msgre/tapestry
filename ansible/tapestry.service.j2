@@ -1,0 +1,12 @@
+[Unit]
+Description=Tapestry presenter service
+After=multi-user.target
+
+[Service]
+Type=simple
+User=root
+ExecStart= /home/pi/tapestry-master/run.sh {{ usb_path }}
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
